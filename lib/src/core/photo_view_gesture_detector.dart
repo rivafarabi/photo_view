@@ -15,6 +15,7 @@ class PhotoViewGestureDetector extends StatelessWidget {
     this.onTapUp,
     this.onTapDown,
     this.behavior,
+    this.useMouseWheel = false,
   }) : super(key: key);
 
   final GestureDoubleTapCallback? onDoubleTap;
@@ -30,6 +31,40 @@ class PhotoViewGestureDetector extends StatelessWidget {
   final Widget? child;
 
   final HitTestBehavior? behavior;
+
+  final bool useMouseWheel;
+
+  void onScrollWheel(PointerSignalEvent event) {
+    if(event is PointerScrollEvent) {
+      final ScaleStartDetails scaleStartDetails = ScaleStartDetails(
+        focalPoint: event.position, 
+        localFocalPoint: event.localPosition, 
+        pointerCount: event.pointer
+      );
+
+      final ScaleUpdateDetails scaleUpdateDetails = ScaleUpdateDetails(
+        focalPoint: event.position,
+        localFocalPoint: event.localPosition,
+        focalPointDelta : event.delta,
+        pointerCount: event.pointer,
+        scale: event.scrollDelta.dy < 0 ? 1.05 : 0.95,
+      );
+
+      final ScaleEndDetails scaleEndDetails = ScaleEndDetails();
+
+      if(onScaleStart != null) {
+        onScaleStart!(scaleStartDetails);
+      }
+
+      if(onScaleUpdate != null) {
+        onScaleUpdate!(scaleUpdateDetails);
+      }
+
+      if(onScaleEnd != null) {
+        onScaleEnd!(scaleEndDetails);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,24 +95,37 @@ class PhotoViewGestureDetector extends StatelessWidget {
       },
     );
 
-    gestures[PhotoViewGestureRecognizer] =
-        GestureRecognizerFactoryWithHandlers<PhotoViewGestureRecognizer>(
-      () => PhotoViewGestureRecognizer(
-          hitDetector: hitDetector, debugOwner: this, validateAxis: axis),
-      (PhotoViewGestureRecognizer instance) {
-        instance
-          ..dragStartBehavior = DragStartBehavior.start
-          ..onStart = onScaleStart
-          ..onUpdate = onScaleUpdate
-          ..onEnd = onScaleEnd;
-      },
-    );
+    if(!useMouseWheel) {
+      gestures[PhotoViewGestureRecognizer] =
+          GestureRecognizerFactoryWithHandlers<PhotoViewGestureRecognizer>(
+        () => PhotoViewGestureRecognizer(
+            hitDetector: hitDetector, debugOwner: this, validateAxis: axis),
+        (PhotoViewGestureRecognizer instance) {
+          instance
+            ..dragStartBehavior = DragStartBehavior.start
+            ..onStart = onScaleStart
+            ..onUpdate = onScaleUpdate
+            ..onEnd = onScaleEnd;
+        },
+      );
 
-    return RawGestureDetector(
-      behavior: behavior,
-      child: child,
-      gestures: gestures,
-    );
+      return RawGestureDetector(
+        behavior: behavior,
+        child: child,
+        gestures: gestures,
+      );
+    }
+    
+    return Listener(
+      onPointerSignal: (PointerSignalEvent event) {
+        GestureBinding.instance.pointerSignalResolver.register(event, onScrollWheel);
+      },
+      child: RawGestureDetector(
+        behavior: behavior,
+        child: child,
+        gestures: gestures,
+      )
+    ); 
   }
 }
 

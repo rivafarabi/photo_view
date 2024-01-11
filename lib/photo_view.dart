@@ -263,6 +263,7 @@ class PhotoView extends StatefulWidget {
     this.errorBuilder,
     this.enablePanAlways,
     this.strictScale,
+    this.useMouseWheel,
   })  : child = null,
         childSize = null,
         super(key: key);
@@ -299,6 +300,7 @@ class PhotoView extends StatefulWidget {
     this.disableGestures,
     this.enablePanAlways,
     this.strictScale,
+    this.useMouseWheel,
   })  : errorBuilder = null,
         imageProvider = null,
         semanticLabel = null,
@@ -414,6 +416,9 @@ class PhotoView extends StatefulWidget {
 
   /// Enable strictScale will restrict user scale gesture to the maxScale and minScale values.
   final bool? strictScale;
+
+  /// Enable mouse wheel scroll to zoom the child widget.
+  final bool? useMouseWheel;
 
   bool get _isCustomChild {
     return child != null;
@@ -536,6 +541,7 @@ class _PhotoViewState extends State<PhotoView>
                 disableGestures: widget.disableGestures,
                 enablePanAlways: widget.enablePanAlways,
                 strictScale: widget.strictScale,
+                useMouseWheel: widget.useMouseWheel,
               )
             : ImageWrapper(
                 imageProvider: widget.imageProvider!,
@@ -564,6 +570,7 @@ class _PhotoViewState extends State<PhotoView>
                 errorBuilder: widget.errorBuilder,
                 enablePanAlways: widget.enablePanAlways,
                 strictScale: widget.strictScale,
+                useMouseWheel: widget.useMouseWheel,
               );
       },
     );
